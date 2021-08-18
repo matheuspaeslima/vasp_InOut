@@ -26,6 +26,7 @@ c   15) add_atom                     (01/08/2020)
 c   16) purge_contcar                (11/08/2020)
 c   17) write_contcarF               (11/08/2020)
 c   18) CONTCAR_to_xyzF              (11/08/2020)                           
+c   19) translate_list(var,t,list,n) (18/08/2021)
 c
 c
 c
@@ -1166,5 +1167,46 @@ C     .: internal
       end subroutine CONTCAR_to_xyzF
 
       
-      end module m_contcar
 
+      subroutine translate_list(var,t,list,n)
+      implicit none
+      type(contcar)       :: var
+      real*8              :: t(3), cellT(3,3)
+      integer             :: n, list(n)
+
+c     .: internal variables
+      real*8              :: td(3)
+      integer             :: i, iatm
+
+      do i=1,n
+      iatm=list(i)
+      if (.not.var%scaled) then
+          var%x(iatm)=var%x(iatm)+t(1)
+          var%y(iatm)=var%y(iatm)+t(2)
+          var%z(iatm)=var%z(iatm)+t(3)
+      else
+          cellT(1,1)=var%cell(1,1)
+          cellT(1,2)=var%cell(2,1)
+          cellT(1,3)=var%cell(3,1)
+
+          cellT(2,1)=var%cell(1,2)
+          cellT(2,2)=var%cell(2,2)
+          cellT(2,3)=var%cell(3,2)
+
+          cellT(3,1)=var%cell(1,3)
+          cellT(3,2)=var%cell(2,3)
+          cellT(3,3)=var%cell(3,3)
+
+          call LU(cellT,t,td,3)
+
+          var%x(iatm)=var%x(iatm)+td(1)
+          var%y(iatm)=var%y(iatm)+td(2)
+          var%z(iatm)=var%z(iatm)+td(3)
+
+      endif
+
+      enddo
+      return
+      end subroutine translate_list
+
+      end module m_contcar
